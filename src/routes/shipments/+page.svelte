@@ -1,9 +1,6 @@
 <script lang="ts">
-  const shipments = [
-    { id: '1', destination: 'New York', status: 'In Transit' },
-    { id: '2', destination: 'Los Angeles', status: 'Delivered' },
-    { id: '3', destination: 'Chicago', status: 'Pending' },
-  ]
+  const { data } = $props()
+  const { shipments } = data
 </script>
 
 <h1>Shipments</h1>
