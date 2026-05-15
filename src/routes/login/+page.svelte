@@ -1,50 +1,27 @@
 <script lang="ts">
-  import { createSupabaseLoadClient } from '$lib/supabase'
-
-  let email = $state('')
-  let password = $state('')
-  let error = $state('')
-  let loading = $state(false)
-
-  const supabase = createSupabaseLoadClient(fetch)
-
-  async function handleLogin() {
-    loading = true
-    error = ''
-
-    const { error: authError } = await supabase.auth.signInWithPassword({
-      email,
-      password,
-    })
-
-    if (authError) {
-      error = authError.message
-    } else {
-      window.location.href = '/shipments'
-    }
-
-    loading = false
-  }
+  const { form } = $props()
 </script>
 
 <h1>Login</h1>
 
-<input
-  type="email"
-  placeholder="Email"
-  bind:value={email}
-/>
+<form method="POST">
+  <input
+    type="email"
+    name="email"
+    placeholder="Email"
+    required
+  />
 
-<input
-  type="password"
-  placeholder="Password"
-  bind:value={password}
-/>
+  <input
+    type="password"
+    name="password"
+    placeholder="Password"
+    required
+  />
 
-<button onclick={handleLogin} disabled={loading}>
-  {loading ? 'Loading...' : 'Login'}
-</button>
+  <button type="submit">Login</button>
 
-{#if error}
-  <p style="color: red">{error}</p>
-{/if}
+  {#if form?.error}
+    <p style="color: red">{form.error}</p>
+  {/if}
+</form>

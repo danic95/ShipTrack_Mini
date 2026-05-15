@@ -1,20 +1,19 @@
-import { createBrowserClient, createServerClient, isBrowser } from '@supabase/ssr'
+import { createServerClient } from '@supabase/ssr'
 import { PUBLIC_SUPABASE_URL, PUBLIC_SUPABASE_ANON_KEY } from '$env/static/public'
+import type { RequestEvent } from '@sveltejs/kit'
 
-export const createSupabaseLoadClient = (fetch: typeof globalThis.fetch) => {
-  return createBrowserClient(PUBLIC_SUPABASE_URL, PUBLIC_SUPABASE_ANON_KEY, {
-    global: { fetch },
-  })
-}
-
-export const createSupabaseServerClient = (event: any) => {
+export const createSupabaseServerClient = (event: RequestEvent) => {
   return createServerClient(PUBLIC_SUPABASE_URL, PUBLIC_SUPABASE_ANON_KEY, {
     cookies: {
       getAll: () => event.cookies.getAll(),
-      setAll: (cookies) => {
-        cookies.forEach(({ name, value, options }) => {
-          event.cookies.set(name, value, { ...options, path: '/' })
-        })
+      setAll: (cookiesToSet) => {
+        try {
+          cookiesToSet.forEach(({ name, value, options }) => {
+            event.cookies.set(name, value, { ...options, path: '/' })
+          })
+        } catch {
+          // Cookie set after response — safe to ignore in load functions
+        }
       },
     },
   })

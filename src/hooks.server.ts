@@ -5,13 +5,16 @@ export const handle: Handle = async ({ event, resolve }) => {
   event.locals.supabase = createSupabaseServerClient(event)
 
   event.locals.getSession = async () => {
-    const { data: { session } } = await event.locals.supabase.auth.getSession()
-    return session
+    const { data: { user }, error } = await event.locals.supabase.auth.getUser()
+    if (error || !user) return null
+    return user
   }
 
-  return resolve(event, {
+  const response = await resolve(event, {
     filterSerializedResponseHeaders(name) {
       return name === 'content-range'
     },
   })
+
+  return response
 }
