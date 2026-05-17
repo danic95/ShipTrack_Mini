@@ -9,11 +9,14 @@ export const load: PageServerLoad = async ({ locals }) => {
 }
 
 export const actions: Actions = {
-  default: async ({ request, locals }) => {
+  getRates: async ({ request, locals }) => {
     const session = await locals.getSession()
     if (!session) throw redirect(303, '/login')
 
     const data = await request.formData()
+
+    const fromAddress = `${data.get('from_address')}, ${data.get('from_city')}, ${data.get('from_state')}`
+    const toAddress = `${data.get('to_address')}, ${data.get('to_city')}, ${data.get('to_state')}`
 
     const response = await fetch('https://api.shipengine.com/v1/rates', {
       method: 'POST',
@@ -22,9 +25,7 @@ export const actions: Actions = {
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        rate_options: {
-          carrier_ids: ['se-5519486'],
-        },
+        rate_options: { carrier_ids: ['se-5519486'] },
         shipment: {
           ship_from: {
             name: data.get('from_name'),
@@ -63,6 +64,31 @@ export const actions: Actions = {
     const result = await response.json()
     const rates = result.rate_response?.rates ?? []
 
-    return { rates }
+    return { rates, from_address: fromAddress, to_address: toAddress }
+  },
+
+  selectRate: async ({ request, locals }) => {
+    const session = await locals.getSession()
+    if (!session) throw redirect(303, '/login')
+
+    const data = await request.formData()
+
+    const { error } = await locals.supabase
+      .from('shipments')
+      .insert({
+        from_address: data.get('from_address'),
+        to_address: data.get('to_address'),
+        service_type: data.get('service_type'),
+        shipping_cost: Number(data.get('shipping_cost')),
+        delivery_days: Number(data.get('delivery_days')),
+        carrier_id: data.get('carrier_id'),
+        status: 'Pending',
+      })
+
+    if (error) {
+      return fail(500, { error: 'Failed to save shipment' })
+    }
+
+    return { success: true }
   },
 }

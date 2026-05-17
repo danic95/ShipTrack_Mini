@@ -4,7 +4,7 @@
 
 <h1>New Shipment</h1>
 
-<form method="POST">
+<form method="POST" action="?/getRates">
   <h3>Ship From</h3>
   <input name="from_name" placeholder="Name" required />
   <input name="from_phone" placeholder="Phone" required />
@@ -29,14 +29,30 @@
   {#if form?.error}
     <p style="color: red">{form.error}</p>
   {/if}
-
-  {#if form?.rates}
-    <h3>Available Rates</h3>
-    {#each form.rates as rate}
-      <div>
-        <strong>{rate.service_type}</strong> —
-        ${rate.shipping_amount.amount} ({rate.delivery_days} days)
-      </div>
-    {/each}
-  {/if}
 </form>
+
+{#if form?.rates}
+  <h3>Available Rates</h3>
+  {#each form.rates as rate}
+    <div style="margin-bottom: 1rem; padding: 1rem; border: 1px solid #ccc;">
+      <strong>{rate.service_type}</strong> —
+      ${rate.shipping_amount.amount} ({rate.delivery_days} days)
+
+      <form method="POST" action="?/selectRate" style="display: inline;">
+        <input type="hidden" name="service_type" value={rate.service_type} />
+        <input type="hidden" name="shipping_cost" value={rate.shipping_amount.amount} />
+        <input type="hidden" name="delivery_days" value={rate.delivery_days} />
+        <input type="hidden" name="carrier_id" value={rate.carrier_id} />
+        <input type="hidden" name="from_address" value={form.from_address} />
+        <input type="hidden" name="to_address" value={form.to_address} />
+        <button type="submit">Select</button>
+      </form>
+    </div>
+  {/each}
+{/if}
+
+{#if form?.success}
+  <p style="color: green">
+    Shipment saved! <a href="/shipments">View all shipments</a>
+  </p>
+{/if}
